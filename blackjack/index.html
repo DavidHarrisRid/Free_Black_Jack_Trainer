@@ -558,8 +558,10 @@
     #tab-deviations .learning-grid {
       grid-template-columns: minmax(0, 1.8fr) minmax(360px, .7fr);
     }
-    #tab-counter .learning-grid, #tab-drills .learning-grid {
+    #tab-drills .learning-grid, #tab-strategy-test .learning-grid {
       grid-template-columns: minmax(0, 1.25fr) minmax(380px, .95fr);
+      max-width: 980px;
+      margin-inline: auto;
     }
     .wide-grid { gap: 16px; }
     .seen-list, .deviation-list {
@@ -602,7 +604,7 @@
     }
 
     @media (max-width: 980px) {
-      .advice-under-game, .learning-grid, #tab-deviations .learning-grid, #tab-counter .learning-grid, #tab-drills .learning-grid { grid-template-columns: 1fr; }
+      .advice-under-game, .learning-grid, #tab-deviations .learning-grid, #tab-drills .learning-grid, #tab-strategy-test .learning-grid { grid-template-columns: 1fr; }
       .play-layout { grid-template-columns: 1fr; }
       .action-rail { position: static; min-height: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .action-label, .active-action-note { grid-column: 1 / -1; }
@@ -837,10 +839,10 @@
     .side .stat { padding: 10px; }
     .side .stat .value { font-size: 22px; }
     .side .panel > p.muted,
-    #tab-counter .rules,
-    #tab-counter h3,
     #tab-deviations .panel > p.muted,
-    #tab-drills .panel p.muted:not(.drill-feedback) {
+    #tab-drills .panel p.muted:not(.drill-feedback),
+    #tab-strategy-test .panel p.muted:not(.drill-feedback),
+    #tab-strategy-test .rules {
       display: none !important;
     }
 
@@ -1035,20 +1037,20 @@
     body.play-help-visible #tab-play .advice-column .advice { gap: 6px; }
 
     /* Restore explanations on every non-play training page. */
-    body:not(.play-tab-active) #tab-counter .rules,
-    body:not(.play-tab-active) #tab-counter h3,
     body:not(.play-tab-active) #tab-deviations .panel > p.muted,
     body:not(.play-tab-active) #tab-drills .panel p.muted:not(.drill-feedback),
-    #tab-counter:not(.active) .rules,
-    #tab-counter:not(.active) h3,
+    body:not(.play-tab-active) #tab-strategy-test .panel p.muted:not(.drill-feedback),
+    body:not(.play-tab-active) #tab-strategy-test .rules,
     #tab-deviations:not(.active) .panel > p.muted,
-    #tab-drills:not(.active) .panel p.muted:not(.drill-feedback) {
+    #tab-drills:not(.active) .panel p.muted:not(.drill-feedback),
+    #tab-strategy-test:not(.active) .panel p.muted:not(.drill-feedback),
+    #tab-strategy-test:not(.active) .rules {
       display: revert !important;
     }
-    #tab-counter.active .rules,
-    #tab-counter.active h3,
     #tab-deviations.active .panel > p.muted,
-    #tab-drills.active .panel p.muted:not(.drill-feedback) {
+    #tab-drills.active .panel p.muted:not(.drill-feedback),
+    #tab-strategy-test.active .panel p.muted:not(.drill-feedback),
+    #tab-strategy-test.active .rules {
       display: revert !important;
     }
 
@@ -1345,10 +1347,10 @@
 <body>
 <nav class="tabs" aria-label="Trainer pages">
   <button class="tab-btn active" data-tab="play">Play Table</button>
-  <button class="tab-btn" data-tab="counter">Count Trainer</button>
-  <button class="tab-btn" data-tab="deviations">Deviation Trainer</button>
   <button class="tab-btn" data-tab="drills">Drills</button>
+  <button class="tab-btn" data-tab="strategy-test">Strategy Test</button>
   <button class="tab-btn" data-tab="strategy">Strategy Tables</button>
+  <button class="tab-btn" data-tab="deviations">Deviation Counter</button>
   <button class="settings-open-btn" id="settingsOpenBtn" type="button">⚙ Settings</button>
   <button class="help-open-btn" id="helpOpenBtn" type="button" aria-label="Open trainer help">?</button>
 </nav>
@@ -1387,8 +1389,8 @@
       </label>
       <label class="toggle"><input type="checkbox" id="showCountToggle"> Show count</label>
       <label class="toggle"><input type="checkbox" id="showCountingDotsToggle"> Beginner count colors</label>
-      <label class="toggle"><input type="checkbox" id="showAdviceToggle" checked> Show advice</label>
-      <label class="toggle"><input type="checkbox" id="useCountAdviceToggle" checked> Count-adjusted advice</label>
+      <label class="toggle"><input type="checkbox" id="showAdviceToggle"> Show advice</label>
+      <label class="toggle"><input type="checkbox" id="useCountAdviceToggle"> Count-adjusted advice</label>
     </div>
   </div>
 </div>
@@ -1408,7 +1410,7 @@
       <div class="help-card"><strong>Counting</strong>Hi-Lo count: 2–6 = +1, 7–9 = 0, 10–A = −1. The dealer hole card is counted only after it is revealed. Hover the count boxes to peek at the hidden count.</div>
       <div class="help-card"><strong>Advice</strong>Basic strategy is the by-the-book move for the current hand. Count-adjusted advice applies the built-in Hi-Lo deviation rules when the true count changes the decision.</div>
       <div class="help-card"><strong>Deviation trainer</strong>The deviation table shows the index rules used by the app. For casino precision, indexes should be matched to the exact rules: deck count, S17/H17, surrender, double after split, penetration, and true-count rounding.</div>
-      <div class="help-card"><strong>Drills</strong>The count drill uses a separate deck. Draw a card, update the running count in your head, enter it, and check. The strategy drill gives random dealer/player hands and checks the correct basic-strategy action.</div>
+      <div class="help-card"><strong>Drills</strong>The count drill uses a separate deck. Draw a card, update the running count in your head, enter it, and check. The strategy test has its own page for random dealer/player hands.</div>
       <div class="help-card"><strong>Strategy table legend</strong><ul><li>H = Hit</li><li>S = Stand</li><li>D = Double if allowed; otherwise use the app fallback</li><li>P = Split</li></ul></div>
     </div>
   </div>
@@ -1503,55 +1505,13 @@
             <div class="stat"><div class="label">Cards left</div><div class="value" id="cardsLeft">52</div></div>
             <div class="stat"><div class="label">Decks left</div><div class="value" id="decksLeft">1.0</div></div>
           </div>
+          <div class="seen-list" id="seenCardsList" style="margin-top:10px;"></div>
           <p class="muted" style="line-height:1.45;margin-bottom:0;">Hi-Lo: 2–6 = +1, 7–9 = 0, 10–A = −1. The dealer hole card is counted only after it is revealed.</p>
         </div>
       </aside>
     </div>
   </section>
 
-  <section id="tab-counter" class="tab-page">
-    <div class="learning-grid">
-      <div class="panel">
-        <div class="wide-grid">
-          <div class="stat"><div class="label">Running count</div><div class="value" id="counterRunning">0</div></div>
-          <div class="stat"><div class="label">True count</div><div class="value" id="counterTrue">0.0</div></div>
-          <div class="stat"><div class="label">Seen cards</div><div class="value" id="counterSeen">0</div></div>
-        </div>
-        <h3>Visible cards counted from the game shoe</h3>
-        <div class="seen-list" id="seenCardsList"></div>
-      </div>
-      <div class="panel">
-        <ul class="rules">
-          <li>Keep the running count without looking at the display.</li>
-          <li>Estimate decks remaining and convert to a true count.</li>
-          <li>Notice how bot players expose more cards and make the table feel more realistic.</li>
-          <li>Use the play table with count hidden, then check this page afterwards.</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section id="tab-deviations" class="tab-page">
-    <div class="learning-grid">
-      <div class="panel strategy-panel">
-        <div class="advice" id="deviationNowBox" data-move="-" style="margin-bottom:14px;">
-          <div class="advice-kicker">Current active hand</div>
-          <div class="advice-action" id="deviationNowAction">-</div>
-          <div class="advice-reason" id="deviationNowReason">Start a round and select a player hand to see whether an index deviation applies.</div>
-        </div>
-        <div class="strategy-table-wrap">
-          <table class="basic-table" id="deviationTable">
-            <thead><tr><th>Situation</th><th>Index</th><th>Deviation</th><th>Basic move</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="panel">
-        <p class="muted" style="line-height:1.55;">The bot players always use basic strategy only. They do not use count deviations. This keeps their behaviour predictable and lets you focus on your own decisions.</p>
-        <p class="muted" style="line-height:1.55;">For real casino precision, index numbers should be matched to the exact rule set: number of decks, S17/H17, surrender, double after split, penetration, and rounding method.</p>
-      </div>
-    </div>
-  </section>
 
   <section id="tab-drills" class="tab-page">
     <div class="learning-grid">
@@ -1577,6 +1537,11 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="tab-strategy-test" class="tab-page">
+    <div class="learning-grid">
 
       <div class="panel strategy-panel">
         <div class="zone-title">
@@ -1596,6 +1561,14 @@
         </div>
         <p class="drill-feedback" id="strategyDrillFeedback">Press “New hand”.</p>
       </div>
+      <div class="panel">
+        <p class="muted" style="line-height:1.55;margin-top:0;">Use this testing game to practice the correct basic-strategy action for random dealer upcards and player hands.</p>
+        <ul class="rules">
+          <li>Press New hand to get a random situation.</li>
+          <li>Choose Hit, Stand, Double, or Split.</li>
+          <li>The trainer checks your answer and explains the table rule.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -1608,6 +1581,28 @@
         <span class="pill action-split">P = Split</span>
       </div>
       <div id="strategyTablesRoot"></div>
+    </div>
+  </section>
+
+  <section id="tab-deviations" class="tab-page">
+    <div class="learning-grid">
+      <div class="panel strategy-panel">
+        <div class="advice" id="deviationNowBox" data-move="-" style="margin-bottom:14px;">
+          <div class="advice-kicker">Current active hand</div>
+          <div class="advice-action" id="deviationNowAction">-</div>
+          <div class="advice-reason" id="deviationNowReason">Start a round and select a player hand to see whether an index deviation applies.</div>
+        </div>
+        <div class="strategy-table-wrap">
+          <table class="basic-table" id="deviationTable">
+            <thead><tr><th>Situation</th><th>Index</th><th>Deviation</th><th>Basic move</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="muted" style="line-height:1.55;">The bot players always use basic strategy only. They do not use count deviations. This keeps their behaviour predictable and lets you focus on your own decisions.</p>
+        <p class="muted" style="line-height:1.55;">For real casino precision, index numbers should be matched to the exact rule set: number of decks, S17/H17, surrender, double after split, penetration, and rounding method.</p>
+      </div>
     </div>
   </section>
 </main>
@@ -2394,9 +2389,6 @@
     el("trueCountStat").dataset.hover = `True count: ${formatCount(trueCountRaw())}`;
     el("cardsLeft").textContent = shoe.length;
     el("decksLeft").textContent = (shoe.length / 52).toFixed(1);
-    el("counterRunning").textContent = runningCount;
-    el("counterTrue").textContent = formatCount(trueCountRaw());
-    el("counterSeen").textContent = seenCards.length;
     el("cardsLeft").textContent = shoe.length;
     shoeStatusEl.textContent = `${lastShuffleText} · Shoe #${shoeShuffleNumber} · ${shoe.length} cards left`;
     shoeStatusEl.classList.toggle("fresh", lastShuffleText.startsWith("Auto-shuffled") || lastShuffleText.startsWith("Manual"));
@@ -2413,7 +2405,9 @@
       const sign = c.value > 0 ? "+1" : c.value < 0 ? "−1" : "0";
       return `<span class="${cls}">${c.rank}${c.suit} <small>${sign}</small></span>`;
     }).join("");
-    el("seenCardsList").innerHTML = seenList || `<span class="muted">No visible game cards counted yet.</span>`;
+    const seenCardsListEl = el("seenCardsList");
+    seenCardsListEl.style.display = showCount ? "flex" : "none";
+    seenCardsListEl.innerHTML = seenList || `<span class="muted">No visible game cards counted yet.</span>`;
 
     const ref = currentRef();
     const canHumanAct = Boolean(inRound && ref && ref.seat.mode === "You" && !ref.hand.done && !isProcessing);
